@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="google-adsense-account" content="ca-pub-5103982667997489">
+<title>Account Management — Prompt Scientist</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+:root {
+  --bg: linear-gradient(135deg,#eef2ff,#f8fafc);
+  --card-bg: rgba(255,255,255,0.7);
+  --accent:#2563eb;
+  --accent-hover:#1e40af;
+  --text:#111827;
+  --muted:#6b7280;
+  --danger:#dc2626;
+  --danger-hover:#b91c1c;
+  --radius:16px;
+  --transition:0.25s ease;
+  --shadow:0 8px 24px rgba(0,0,0,0.08);
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  font-family:"Inter",sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+}
+
+header{
+  background:#fff;
+  box-shadow:0 2px 10px rgba(0,0,0,0.05);
+  padding:16px 24px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  position:sticky;
+  top:0;
+  z-index:50;
+  animation:fadeInDown 0.5s ease;
+}
+header h1{font-size:20px;font-weight:700;color:var(--accent);}
+header a{text-decoration:none;color:var(--muted);transition:var(--transition);}
+header a:hover{color:var(--accent);}
+
+main{
+  max-width:520px;
+  margin:60px auto;
+  padding:0 18px;
+  width:100%;
+  display:flex;
+  flex-direction:column;
+  gap:30px;
+  animation:fadeInUp 0.7s ease;
+}
+
+.card{
+  background:var(--card-bg);
+  backdrop-filter:blur(10px);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:28px 24px;
+  transition:var(--transition);
+}
+.card:hover{transform:translateY(-4px);box-shadow:0 10px 28px rgba(0,0,0,0.12);}
+
+h2{font-size:18px;margin-bottom:16px;}
+label{display:block;font-weight:600;font-size:14px;margin-top:12px;}
+input{
+  width:100%;
+  padding:12px 14px;
+  border-radius:10px;
+  border:1px solid #d1d5db;
+  font-size:14px;
+  margin-top:6px;
+  transition:border var(--transition);
+}
+input:focus{border-color:var(--accent);outline:none;}
+
+button{
+  width:100%;
+  margin-top:20px;
+  padding:12px;
+  border:none;
+  border-radius:10px;
+  background:var(--accent);
+  color:#fff;
+  font-weight:600;
+  font-size:15px;
+  cursor:pointer;
+  transition:background var(--transition),transform var(--transition);
+}
+button:hover{background:var(--accent-hover);transform:translateY(-2px);}
+.danger{background:var(--danger);}
+.danger:hover{background:var(--danger-hover);}
+
+.msg{margin-top:12px;font-size:14px;color:var(--muted);}
+
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.45);
+  display:none;
+  justify-content:center;
+  align-items:center;
+  z-index:100;
+  animation:fadeIn 0.3s ease forwards;
+}
+.modal.active{display:flex;}
+.modal-content{
+  background:#fff;
+  border-radius:12px;
+  box-shadow:var(--shadow);
+  padding:24px 28px;
+  max-width:420px;
+  width:100%;
+  text-align:center;
+  animation:popIn 0.3s ease;
+}
+.modal-content h3{font-size:18px;margin-bottom:10px;}
+.modal-content p{font-size:14px;color:var(--muted);margin-bottom:22px;}
+.modal-content input{margin-bottom:15px;}
+.modal-buttons{display:flex;justify-content:center;gap:10px;}
+.modal-buttons button{flex:1;min-width:120px;}
+
+@keyframes fadeInUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+@keyframes fadeInDown{from{opacity:0;transform:translateY(-20px);}to{opacity:1;transform:translateY(0);}}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+@keyframes popIn{from{transform:scale(0.95);opacity:0;}to{transform:scale(1);opacity:1;}}
+
+@media(max-width:480px){main{margin:30px auto;}.card{padding:20px;}}
+</style>
+</head>
+<body>
+<header>
+<h1>Account Settings</h1>
+<a href="profile.html">Back</a>
+</header>
+
+<main>
+<section class="card">
+<h2>Profile Update</h2>
+<form id="updateForm">
+<label>Full Name
+<input type="text" id="updateName" placeholder="Enter your name">
+</label>
+<label>New Email
+<input type="email" id="updateEmail" placeholder="Enter new email">
+</label>
+<label>New Password
+<input type="password" id="updatePassword" placeholder="Enter new password">
+</label>
+<label>Current Password (required)
+<input type="password" id="currentPassword" required placeholder="Current password">
+</label>
+<button type="submit">Update Account</button>
+<p class="msg" id="updateMsg"></p>
+</form>
+</section>
+
+<section class="card">
+<h2>Delete Account</h2>
+<p class="msg">Once deleted, this account cannot be recovered.</p>
+<button class="danger" id="deleteBtn">Delete My Account</button>
+<p class="msg" id="deleteMsg"></p>
+</section>
+</main>
+
+<!-- Delete Modal -->
+<div class="modal" id="confirmModal">
+<div class="modal-content">
+<h3>Confirm Account Deletion</h3>
+<p>Enter your current password to permanently delete your account. This action cannot be undone.</p>
+<input type="password" id="deletePassword" placeholder="Current password">
+<div class="modal-buttons">
+<button id="cancelDelete">Cancel</button>
+<button class="danger" id="confirmDelete">Delete</button>
+</div>
+<p class="msg" id="modalMsg"></p>
+</div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { getAuth, onAuthStateChanged, updateEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider, deleteUser } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { getFirestore, doc, updateDoc, deleteDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+// Firebase Config
+const firebaseConfig = {
+  apiKey: "AIzaSyDDgwI90DMBa25JOkNR2Oec32kfgIt5TNg",
+  authDomain: "prompt-scientist.firebaseapp.com",
+  projectId: "prompt-scientist",
+  storageBucket: "prompt-scientist.firebasestorage.app",
+  messagingSenderId: "240705146800",
+  appId: "1:240705146800:web:e7f05107761f4d3007d075"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const updateForm = document.getElementById("updateForm");
+const updateMsg = document.getElementById("updateMsg");
+const deleteBtn = document.getElementById("deleteBtn");
+const deleteMsg = document.getElementById("deleteMsg");
+const modal = document.getElementById("confirmModal");
+const cancelDelete = document.getElementById("cancelDelete");
+const confirmDelete = document.getElementById("confirmDelete");
+const modalMsg = document.getElementById("modalMsg");
+const deletePassword = document.getElementById("deletePassword");
+
+let currentUser = null;
+
+onAuthStateChanged(auth, (user)=>{
+  if(!user) location.href="index.html";
+  currentUser=user;
+});
+
+// Profile Update
+updateForm.addEventListener("submit", async(e)=>{
+  e.preventDefault();
+  updateMsg.textContent="Updating...";
+  const name=document.getElementById("updateName").value.trim();
+  const newEmail=document.getElementById("updateEmail").value.trim();
+  const newPass=document.getElementById("updatePassword").value.trim();
+  const currentPass=document.getElementById("currentPassword").value.trim();
+  try{
+    const cred=EmailAuthProvider.credential(currentUser.email,currentPass);
+    await reauthenticateWithCredential(currentUser,cred);
+    if(name) await updateDoc(doc(db,"users",currentUser.uid),{name});
+    if(newEmail){
+      await updateEmail(currentUser,newEmail);
+      await updateDoc(doc(db,"users",currentUser.uid),{email:newEmail});
+    }
+    if(newPass) await updatePassword(currentUser,newPass);
+    updateMsg.textContent="✅ Account successfully updated!";
+    updateForm.reset();
+  } catch(err){
+    updateMsg.textContent="❌ "+err.message;
+  }
+});
+
+// Modal Open/Close
+deleteBtn.addEventListener("click",()=>modal.classList.add("active"));
+cancelDelete.addEventListener("click",()=>{
+  modal.classList.remove("active");
+  deletePassword.value="";
+  modalMsg.textContent="";
+});
+
+// Confirm Delete with password
+confirmDelete.addEventListener("click", async () => {
+  const pwd = deletePassword.value.trim();
+  if (!pwd) {
+    modalMsg.textContent = "❌ Please enter password";
+    return;
+  }
+
+  confirmDelete.disabled = true;
+  cancelDelete.disabled = true;
+  modalMsg.textContent = "Deleting...";
+
+  try {
+    // 🔹 Re-authenticate user
+    const cred = EmailAuthProvider.credential(currentUser.email, pwd);
+    await reauthenticateWithCredential(currentUser, cred);
+
+    // 🔹 1) Delete main user document
+    try {
+      await deleteDoc(doc(db, "users", currentUser.uid));
+    } catch (e) {
+      console.warn("Could not delete users doc:", e);
+    }
+
+    // 🔹 2) Delete other collections containing user data
+    const collectionsToDelete = ["posts", "messages"]; // <-- Change as per your project
+    for (const colName of collectionsToDelete) {
+      try {
+        const q = query(collection(db, colName), where("userId", "==", currentUser.uid));
+        const snap = await getDocs(q);
+        for (const d of snap.docs) {
+          await deleteDoc(doc(db, colName, d.id));
+        }
+      } catch (e) {
+        console.warn(`Failed deleting docs in ${colName}:`, e);
+      }
+    }
+
+    // 🔹 3) Delete Firebase Auth user
+    await deleteUser(currentUser);
+
+    modalMsg.textContent = "✅ Account deleted successfully!";
+    setTimeout(() => location.href = "index.html", 1200);
+
+  } catch (err) {
+    console.error("Delete error:", err);
+    if (err && err.code === "auth/wrong-password") {
+      modalMsg.textContent = "❌ Wrong password. Try again.";
+    } else if (err && err.code === "auth/requires-recent-login") {
+      modalMsg.textContent = "❌ Recent login required. Please logout and login again.";
+    } else {
+      modalMsg.textContent = "❌ " + (err.message || "Failed to delete account");
+    }
+  } finally {
+    confirmDelete.disabled = false;
+    cancelDelete.disabled = false;
+    deletePassword.value = "";
+  }
+});
+</script>
+</body>
+  </html>
